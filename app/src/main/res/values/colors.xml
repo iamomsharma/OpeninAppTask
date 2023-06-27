@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+
+    <color name="transprint_color">#00FFFFFF</color>
+    <color name="blue">#0E6FFF</color>
+    <color name="white_transparent">#E6FFFFFF</color>
+    <color name="dark_blue">#0A4398</color>
+
+    <color name="light_blue_400">#EDF4FF</color>
+    <color name="light_blue">#A6C7FF</color>
+    <color name="light_blue_transparent">#E6A6C7FF</color>
+    <color name="light_gray">#EBEBEB</color>
+
+    <color name="bg_gray_color">#F5F5F5</color>
+
+    // Text Color
+    <color name="txt_gray_color">#999CA0</color>
+    <color name="txt_black_color">#000000</color>
+
+</resources>
