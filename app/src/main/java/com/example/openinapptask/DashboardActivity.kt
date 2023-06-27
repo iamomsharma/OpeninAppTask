@@ -22,7 +22,6 @@ import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
-import retrofit2.Response
 import java.util.Calendar
 
 
@@ -59,76 +58,56 @@ class DashboardActivity : AppCompatActivity() {
 
             if (dataList.isSuccessful) {
                 if (dataList.body() != null) {
+
                     binding.clReload.visibility = View.GONE
+                    showLinksList(true, dataList.body())
+
                     dataList.body()?.isTopLinkCheck = true
 
+                    //  Only for link button active or not
                     if (dataList.body()?.isTopLinkCheck == true) {
-                        binding.btnTopLinks.background =
-                            ContextCompat.getDrawable(this, R.drawable.custom_blue_button)
-                        Log.d(
-                            "TAG",
-                            "getLinkList >> top_links >>: {${dataList.body()?.data?.top_links}}"
-                        )
+                        binding.btnTopLinks.background = ContextCompat.getDrawable(this, R.drawable.custom_blue_button)
+                        Log.d("TAG", "getLinkList >> top_links >>: {${dataList.body()?.data?.top_links}}")
 
                     } else {
-                        binding.btnRecentLinks.background =
-                            ContextCompat.getDrawable(this, R.drawable.custom_blue_button)
-                        Log.d(
-                            "TAG",
-                            "getLinkList >> recent_links >>: {${dataList.body()?.data?.recent_links}}"
-                        )
+                        binding.btnRecentLinks.background = ContextCompat.getDrawable(this, R.drawable.custom_blue_button)
+                        Log.d("TAG", "getLinkList >> recent_links >>: {${dataList.body()?.data?.recent_links}}")
                     }
 
+                    //  Button Click
                     binding.btnTopLinks.setOnClickListener {
                         dataList.body()?.isTopLinkCheck = true
                         dataList.body()?.isRecentLinkCheck = false
-                        binding.btnTopLinks.background =
-                            ContextCompat.getDrawable(this, R.drawable.custom_blue_button)
-                        binding.btnTopLinks.setTextColor(
-                            ContextCompat.getColor(
-                                this,
-                                R.color.white
-                            )
+
+                        binding.btnTopLinks.background = ContextCompat.getDrawable(this, R.drawable.custom_blue_button)
+                        binding.btnTopLinks.setTextColor(ContextCompat.getColor(this, R.color.white)
                         )
 
-                        // isUnActive Button Design
-                        binding.btnRecentLinks.background =
-                            ContextCompat.getDrawable(this, R.drawable.custom_transprint_button)
-                        binding.btnRecentLinks.setTextColor(
-                            ContextCompat.getColor(
-                                this,
-                                R.color.txt_gray_color
-                            )
+                        // inActive Button Design
+                        binding.btnRecentLinks.background = ContextCompat.getDrawable(this, R.drawable.custom_transprint_button)
+                        binding.btnRecentLinks.setTextColor(ContextCompat.getColor(this, R.color.txt_gray_color)
                         )
 
-                        showLinksList(true, dataList)
+                        showLinksList(true, dataList.body())
                     }
 
                     binding.btnRecentLinks.setOnClickListener {
+
+                        // Set Button Checked Value
                         dataList.body()?.isRecentLinkCheck = true
                         dataList.body()?.isTopLinkCheck = false
 
                         // isActive Button Design
-                        binding.btnRecentLinks.background =
-                            ContextCompat.getDrawable(this, R.drawable.custom_blue_button)
-                        binding.btnRecentLinks.setTextColor(
-                            ContextCompat.getColor(
-                                this,
-                                R.color.white
-                            )
+                        binding.btnRecentLinks.background = ContextCompat.getDrawable(this, R.drawable.custom_blue_button)
+                        binding.btnRecentLinks.setTextColor(ContextCompat.getColor(this, R.color.white)
                         )
 
-                        // isUnActive Button Design
-                        binding.btnTopLinks.background =
-                            ContextCompat.getDrawable(this, R.drawable.custom_transprint_button)
-                        binding.btnTopLinks.setTextColor(
-                            ContextCompat.getColor(
-                                this,
-                                R.color.txt_gray_color
-                            )
+                        // inActive Button Design
+                        binding.btnTopLinks.background = ContextCompat.getDrawable(this, R.drawable.custom_transprint_button)
+                        binding.btnTopLinks.setTextColor(ContextCompat.getColor(this, R.color.txt_gray_color)
                         )
 
-                        showLinksList(false, dataList)
+                        showLinksList(false, dataList.body())
 
                     }
 
@@ -148,20 +127,17 @@ class DashboardActivity : AppCompatActivity() {
 
     }
 
-    private fun showLinksList(topLinkList: Boolean, dataList: Response<DashboardModel>) {
+    private fun showLinksList(topLinkList: Boolean, dataList: DashboardModel?) {
 
         if (topLinkList) {
-            binding.rvLinks.adapter =
-                TopLinkListAdapter(dataList.body()?.data?.top_links as ArrayList<DashboardModel.Data.TopLink>)
+            binding.rvLinks.adapter = TopLinkListAdapter(dataList?.data?.top_links as ArrayList<DashboardModel.Data.TopLink>)
             binding.rvLinks.layoutManager = LinearLayoutManager(this)
 
         } else {
-            binding.rvLinks.adapter =
-                RecentLinkListAdapter(dataList.body()?.data?.top_links as ArrayList<DashboardModel.Data.RecentLink>)
+            binding.rvLinks.adapter = RecentLinkListAdapter(dataList?.data?.top_links as ArrayList<DashboardModel.Data.RecentLink>)
             binding.rvLinks.layoutManager = LinearLayoutManager(this)
 
         }
-
 
     }
 

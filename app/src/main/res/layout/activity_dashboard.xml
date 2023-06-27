@@ -24,6 +24,7 @@
             android:background="@color/white"
             android:clickable="true"
             android:focusable="true"
+            android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent">
 
             <androidx.appcompat.widget.AppCompatTextView
