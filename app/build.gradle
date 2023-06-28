@@ -60,10 +60,10 @@ dependencies {
     implementation "com.google.dagger:dagger:$dagger_version"
     kapt "com.google.dagger:dagger-compiler:$dagger_version"
 
-    // picasso for show image
-    implementation 'com.squareup.picasso:picasso:2.8'
+    // GLide for show image
+    implementation 'com.github.bumptech.glide:glide:4.4.0'
 
-
+    // Chart Library for line chart
     implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
    
     testImplementation 'junit:junit:4.13.2'

@@ -8,7 +8,7 @@ import com.example.openinapptask.retrofitservice.RetrofitHelper
 import retrofit2.Response
 
 class DashboardRepository() {
-
+    // Retrieve token here
     suspend fun fetchData(token: String): Response<DashboardModel> {
         return RetrofitHelper.apiService.getDashboardData(token)
     }

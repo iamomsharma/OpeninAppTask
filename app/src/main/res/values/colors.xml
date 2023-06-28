@@ -2,6 +2,7 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="red">#FF0000</color>
 
 
     <color name="transprint_color">#00FFFFFF</color>
@@ -19,5 +20,8 @@
     // Text Color
     <color name="txt_gray_color">#999CA0</color>
     <color name="txt_black_color">#000000</color>
+
+    // Chart Color
+    <color name="chart_grid_color">#D7D7D8</color>
 
 </resources>

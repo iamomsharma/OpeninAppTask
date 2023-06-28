@@ -1,5 +1,8 @@
 package com.example.openinapptask
 
+import ResponseToChartMapper
+import android.content.ClipboardManager
+import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -17,6 +20,7 @@ import com.example.openinapptask.adapter.TopLinkListAdapter
 import com.example.openinapptask.databinding.ActivityDashboardBinding
 import com.example.openinapptask.model.DashboardModel
 import com.example.openinapptask.repository.DashboardRepository
+import com.example.openinapptask.utils.UtilsFile
 import com.example.openinapptask.viewmodel.DashboardViewModel
 import com.example.openinapptask.viewmodel.MainViewModelFactory
 import com.github.mikephil.charting.components.XAxis
@@ -24,9 +28,6 @@ import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
-import java.time.LocalDate
-import java.time.Month
-import java.time.format.DateTimeFormatter
 import java.util.Calendar
 
 
@@ -53,24 +54,23 @@ class DashboardActivity : AppCompatActivity(), View.OnClickListener {
 
         setGreeting()
         getApiData()
-
         handleClick()
-
-       // getLinkList()
-
     }
 
     private fun handleClick() {
-
         binding.btnTopLinks.setOnClickListener(this)
         binding.btnRecentLinks.setOnClickListener(this)
+        binding.clReload.setOnClickListener(this)
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun getApiData() {
         val repository = DashboardRepository()
-        viewModel = ViewModelProvider(this, MainViewModelFactory(repository)).get(DashboardViewModel::class.java)
-
+        val mapper = ResponseToChartMapper()
+        viewModel = ViewModelProvider(this, MainViewModelFactory(repository, mapper)).get(DashboardViewModel::class.java)
+        viewModel.chartData.observe(this, Observer { chartData ->
+            setupLineChart(chartData)
+        })
         viewModel.dataList.observe(this, Observer { dataList ->
 
             if (dataList.isSuccessful) {
@@ -80,17 +80,24 @@ class DashboardActivity : AppCompatActivity(), View.OnClickListener {
                     binding.clReload.visibility = View.GONE
                     myResponse?.isTopLinkCheck = true
 
-                    setupLineChart()
-                    showLinksList(true)
+                    callLinkListAdapter(true)
 
                     //  Check for link button active or not
                     if (myResponse?.isTopLinkCheck == true) {
-                        binding.btnTopLinks.background = ContextCompat.getDrawable(this, R.drawable.custom_blue_button)
-                        Log.d("TAG", "getLinkList >> top_links >>: {${myResponse?.data?.top_links}}")
+                        binding.btnTopLinks.background =
+                            ContextCompat.getDrawable(this, R.drawable.custom_blue_button)
+                        Log.d(
+                            "TAG",
+                            "getLinkList >> top_links >>: {${myResponse?.data?.top_links}}"
+                        )
 
                     } else {
-                        binding.btnRecentLinks.background = ContextCompat.getDrawable(this, R.drawable.custom_blue_button)
-                        Log.d("TAG", "getLinkList >> recent_links >>: {${myResponse?.data?.recent_links}}")
+                        binding.btnRecentLinks.background =
+                            ContextCompat.getDrawable(this, R.drawable.custom_blue_button)
+                        Log.d(
+                            "TAG",
+                            "getLinkList >> recent_links >>: {${myResponse?.data?.recent_links}}"
+                        )
                     }
 
                 } else {
@@ -103,19 +110,33 @@ class DashboardActivity : AppCompatActivity(), View.OnClickListener {
 
         })
 
+        viewModel.errorLiveData.observe(this, { errorMessage ->
+            showErrorUI(errorMessage)
+        })
 
-        val AUTH_TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjU5MjcsImlhdCI6MTY3NDU1MDQ1MH0.dCkW0ox8tbjJA2GgUx2UEwNlbTZ7Rr38PVFJevYcXFI"
-        viewModel.fetchData(AUTH_TOKEN)
+        val token = UtilsFile.getToken(applicationContext)
+        if (token != null) {
+            viewModel.fetchData(token)
+        }
+
     }
 
-    private fun showLinksList(topLinkList: Boolean) {
+    private fun showErrorUI(errorMessage: String?) {
+        binding.clReload.visibility = View.VISIBLE
+    }
+
+    private fun callLinkListAdapter(topLinkList: Boolean) {
+
+        val isCallFromDashboard = true
+
+        val clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
 
         if (topLinkList) {
-            binding.rvLinks.adapter = TopLinkListAdapter(myResponse?.data?.top_links as ArrayList<DashboardModel.Data.TopLink>)
+            binding.rvLinks.adapter = TopLinkListAdapter(myResponse?.data?.top_links as ArrayList<DashboardModel.Data.TopLink>, isCallFromDashboard, clipboardManager)
             binding.rvLinks.layoutManager = LinearLayoutManager(this)
 
         } else {
-            binding.rvLinks.adapter = RecentLinkListAdapter(myResponse?.data?.recent_links as ArrayList<DashboardModel.Data.RecentLink>)
+            binding.rvLinks.adapter = RecentLinkListAdapter(myResponse?.data?.recent_links as ArrayList<DashboardModel.Data.RecentLink>, isCallFromDashboard, clipboardManager)
             binding.rvLinks.layoutManager = LinearLayoutManager(this)
 
         }
@@ -123,9 +144,7 @@ class DashboardActivity : AppCompatActivity(), View.OnClickListener {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun setupLineChart() {
-
-        val overallUrlChart = myResponse?.data?.overall_url_chart
+    private fun setupLineChart(chartData: List<Entry>) {
 
         binding.lineChart.description.isEnabled = false
         binding.lineChart.setTouchEnabled(false)
@@ -144,62 +163,31 @@ class DashboardActivity : AppCompatActivity(), View.OnClickListener {
         xAxis.valueFormatter = IndexAxisValueFormatter(labels)
         xAxis.setDrawGridLines(true)
         xAxis.setDrawLabels(true)
-        xAxis.gridColor = R.color.txt_gray_color
-        xAxis.textColor = R.color.txt_gray_color
+        xAxis.gridColor = getColor(R.color.txt_gray_color)
+        xAxis.textColor = getColor(R.color.txt_gray_color)
         xAxis.gridLineWidth = 0.5f
         xAxis.granularity = 1f
 
+
         // Configure Y axis
+
         binding.lineChart.axisRight.setDrawLabels(false)
+        binding.lineChart.axisRight.setDrawGridLines(false)
+
         val yAxisLeft = binding.lineChart.axisLeft
         yAxisLeft.axisMinimum = 0f
         yAxisLeft.axisMaximum = 100f
         yAxisLeft.setGranularity(25f)
-        yAxisLeft.textColor = R.color.txt_gray_color
-        yAxisLeft.gridColor = R.color.txt_gray_color
+        yAxisLeft.textColor = getColor(R.color.txt_gray_color)
+        yAxisLeft.gridColor = getColor(R.color.txt_gray_color)
         yAxisLeft.textSize = 12f
         yAxisLeft.gridLineWidth = 0.5f
+        yAxisLeft.setDrawGridLines(true)
+        yAxisLeft.setDrawLabels(true)
 
-
-        val formatter = DateTimeFormatter.ISO_LOCAL_DATE
-        val sumByMonth = mutableMapOf<Month, Int>()
-        val countByMonth = mutableMapOf<Month, Int>()
-
-        if (overallUrlChart != null) {
-            for ((date, value) in overallUrlChart) {
-                val localDate = LocalDate.parse(date, formatter)
-                val month = localDate.month
-
-                sumByMonth[month] = sumByMonth.getOrDefault(month, 0) + value
-                countByMonth[month] = countByMonth.getOrDefault(month, 0) + 1
-            }
-        }
-
-        val averageByMonth = mutableMapOf<Month, Double>()
-        for ((month, sum) in sumByMonth) {
-            val average = sum.toDouble() / 100.0
-            averageByMonth[month] = average
-        }
-
-
-        for ((month, average) in averageByMonth) {
-            println("$month: $average")
-           // Entry(1f, 20f).apply { "$month: $average" }
-
-        }
-
-        // Set Static Value into Line chart
-        val entries = listOf(
-            Entry(0f, 40f),
-            Entry(1f, 20f),
-            Entry(2f, 25f),
-            Entry(3f, 30f),
-            Entry(4f, 18f),
-            Entry(5f, 22f)
-        )
 
         // Create line data set
-        val lineDataSet = LineDataSet(entries, "Line Data Set")
+        val lineDataSet = LineDataSet(chartData, "Line Data Set")
         lineDataSet.color = getColor(R.color.blue)
         lineDataSet.lineWidth = 3f
         lineDataSet.setDrawCircles(false)
@@ -232,23 +220,28 @@ class DashboardActivity : AppCompatActivity(), View.OnClickListener {
 
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onClick(view: View?) {
-        when (view?.id)
-        {
+        when (view?.id) {
             R.id.btnTopLinks -> {
                 myResponse?.isTopLinkCheck = true
                 myResponse?.isRecentLinkCheck = false
 
-                binding.btnTopLinks.background = ContextCompat.getDrawable(this, R.drawable.custom_blue_button)
-                binding.btnTopLinks.setTextColor(ContextCompat.getColor(this, R.color.white)
+                // isActive TopLinks Button Design
+                binding.btnTopLinks.background =
+                    ContextCompat.getDrawable(this, R.drawable.custom_blue_button)
+                binding.btnTopLinks.setTextColor(
+                    ContextCompat.getColor(this, R.color.white)
                 )
 
-                // inActive Button Design
-                binding.btnRecentLinks.background = ContextCompat.getDrawable(this, R.drawable.custom_transprint_button)
-                binding.btnRecentLinks.setTextColor(ContextCompat.getColor(this, R.color.txt_gray_color)
+                // isInActive RecentLinks Button Design
+                binding.btnRecentLinks.background =
+                    ContextCompat.getDrawable(this, R.drawable.custom_transprint_button)
+                binding.btnRecentLinks.setTextColor(
+                    ContextCompat.getColor(this, R.color.txt_gray_color)
                 )
 
-                showLinksList(true)
+                callLinkListAdapter(true)
             }
 
             R.id.btnRecentLinks -> {
@@ -256,19 +249,28 @@ class DashboardActivity : AppCompatActivity(), View.OnClickListener {
                 myResponse?.isRecentLinkCheck = true
                 myResponse?.isTopLinkCheck = false
 
-                // isActive Button Design
-                binding.btnRecentLinks.background = ContextCompat.getDrawable(this, R.drawable.custom_blue_button)
-                binding.btnRecentLinks.setTextColor(ContextCompat.getColor(this, R.color.white)
+                // isActive RecentLinks Button Design
+                binding.btnRecentLinks.background =
+                    ContextCompat.getDrawable(this, R.drawable.custom_blue_button)
+                binding.btnRecentLinks.setTextColor(
+                    ContextCompat.getColor(this, R.color.white)
                 )
 
-                // inActive Button Design
-                binding.btnTopLinks.background = ContextCompat.getDrawable(this, R.drawable.custom_transprint_button)
-                binding.btnTopLinks.setTextColor(ContextCompat.getColor(this, R.color.txt_gray_color)
+                // isInActive TopLinks Button Design
+                binding.btnTopLinks.background =
+                    ContextCompat.getDrawable(this, R.drawable.custom_transprint_button)
+                binding.btnTopLinks.setTextColor(
+                    ContextCompat.getColor(this, R.color.txt_gray_color)
                 )
 
-                showLinksList(false)
+                callLinkListAdapter(false)
+            }
+
+            R.id.clReload -> {
+                getApiData()
             }
         }
+
     }
 
 }

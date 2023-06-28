@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:fontFamily="@font/figtree_bold"
-        android:text="Dashboard"
+        android:text="@string/dashboard"
         android:textColor="@color/white"
         android:textSize="24sp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -31,8 +31,8 @@
         app:layout_constraintTop_toTopOf="@+id/tvToolbarTitle">
 
         <androidx.appcompat.widget.AppCompatImageView
-            android:layout_width="20dp"
-            android:layout_height="20dp"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
             app:srcCompat="@drawable/ic_wrench" />
     </LinearLayout>
 

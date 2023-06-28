@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">OpeninApp Task</string>
+    <string name="reload">Reload</string>
+    <string name="top_links">Top Links</string>
+    <string name="recent_links">Recent Links</string>
+    <string name="clicks">Clicks</string>
+    <string name="dashboard">Dashboard</string>
+    <string name="user_name">Om Prakash Sharma</string>
+    <string name="overview">Overview</string>
 </resources>

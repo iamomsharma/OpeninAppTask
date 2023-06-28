@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <androidx.cardview.widget.CardView
         android:id="@+id/cardView"
@@ -21,22 +22,22 @@
                 android:id="@+id/ivProfile"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:background="@drawable/custom_search_button"
                 app:layout_constraintBottom_toTopOf="@+id/linearLayout"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/ic_link"
+                tools:srcCompat="@mipmap/dummy_image"
                 android:layout_marginStart="12dp"/>
 
 
             <androidx.appcompat.widget.AppCompatTextView
-                android:id="@+id/tvLinkName"
+                android:id="@+id/tvLinkTitle"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 android:layout_marginStart="12dp"
                 android:fontFamily="@font/figtree_medium"
                 android:gravity="center|start"
-                android:text="Smart Link Name"
+                tools:text="Smart Link Name"
+                android:maxLines="1"
                 android:textColor="@color/txt_black_color"
                 android:textSize="14sp"
                 app:layout_constraintBottom_toTopOf="@+id/tvDate"
@@ -50,13 +51,13 @@
                 android:layout_height="0dp"
                 android:fontFamily="@font/figtree_medium"
                 android:gravity="center|start"
-                android:text="22 Aug 2023"
+                tools:text="22 Aug 2023"
                 android:textColor="@color/txt_gray_color"
                 android:textSize="12sp"
                 app:layout_constraintBottom_toBottomOf="@+id/ivProfile"
                 app:layout_constraintEnd_toStartOf="@+id/tvClicks"
-                app:layout_constraintStart_toStartOf="@+id/tvLinkName"
-                app:layout_constraintTop_toBottomOf="@+id/tvLinkName" />
+                app:layout_constraintStart_toStartOf="@+id/tvLinkTitle"
+                app:layout_constraintTop_toBottomOf="@+id/tvLinkTitle" />
 
             <androidx.appcompat.widget.AppCompatTextView
                 android:id="@+id/tvClickCount"
@@ -64,7 +65,7 @@
                 android:layout_height="0dp"
                 android:fontFamily="@font/figtree_bold"
                 android:gravity="center"
-                android:text="22"
+                tools:text="22"
                 android:textColor="@color/txt_black_color"
                 android:textSize="14sp"
                 app:layout_constraintBottom_toTopOf="@+id/tvDate"
@@ -78,13 +79,13 @@
                 android:layout_height="0dp"
                 android:fontFamily="@font/figtree_medium"
                 android:gravity="center"
-                android:text="Clicks"
+                android:text="@string/clicks"
                 android:textColor="@color/txt_gray_color"
                 android:textSize="12sp"
                 android:layout_marginEnd="12dp"
                 app:layout_constraintBottom_toBottomOf="@+id/ivProfile"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/tvLinkName" />
+                app:layout_constraintTop_toBottomOf="@+id/tvLinkTitle" />
 
             <LinearLayout
                 android:id="@+id/linearLayout"
@@ -101,19 +102,22 @@
 
                 <androidx.appcompat.widget.AppCompatTextView
                     android:id="@+id/tvLink"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="16dp"
                     android:layout_weight="1"
+                    android:maxLines="1"
                     android:fontFamily="@font/figtree_medium"
-                    android:text="https://samplelink.oia.bio/ashd..."
+                    tools:text="https://samplelink.oia.bio/ashd..."
                     android:textColor="@color/blue"
                     android:textSize="14sp" />
 
                 <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/ivCopy"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    app:srcCompat="@drawable/id_copy" />
+                    app:srcCompat="@drawable/ic_copy"
+                    android:foreground="?android:attr/selectableItemBackground"/>
 
 
             </LinearLayout>
