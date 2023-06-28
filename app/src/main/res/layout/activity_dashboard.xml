@@ -62,7 +62,7 @@
                     app:layout_constraintBottom_toBottomOf="@+id/tvName"
                     app:layout_constraintStart_toEndOf="@+id/tvName"
                     app:layout_constraintTop_toTopOf="@+id/tvName"
-                    app:srcCompat="@drawable/img_hello" />
+                    app:srcCompat="@drawable/ic_hello" />
 
                 <androidx.cardview.widget.CardView
                     android:id="@+id/cardView"

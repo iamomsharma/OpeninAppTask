@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">OpeninApp Task</string>
+    <string name="app_name">OpeninApp</string>
     <string name="reload">Reload</string>
     <string name="top_links">Top Links</string>
     <string name="recent_links">Recent Links</string>
