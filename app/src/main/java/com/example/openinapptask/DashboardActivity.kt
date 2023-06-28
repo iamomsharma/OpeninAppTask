@@ -36,7 +36,12 @@ class DashboardActivity : AppCompatActivity() {
 
     private lateinit var viewModel: DashboardViewModel
 
+    companion object {
+        var myResponse: DashboardModel? = null
+    }
 
+
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_dashboard)
@@ -65,26 +70,28 @@ class DashboardActivity : AppCompatActivity() {
             if (dataList.isSuccessful) {
                 if (dataList.body() != null) {
 
-                    binding.clReload.visibility = View.GONE
-                    setupLineChart(dataList.body()?.data?.overall_url_chart)
-                    showLinksList(true, dataList.body())
+                    myResponse = dataList.body()
 
-                    dataList.body()?.isTopLinkCheck = true
+                    binding.clReload.visibility = View.GONE
+                    setupLineChart(myResponse?.data?.overall_url_chart)
+                    showLinksList(true, myResponse)
+
+                    myResponse?.isTopLinkCheck = true
 
                     //  Only for link button active or not
-                    if (dataList.body()?.isTopLinkCheck == true) {
+                    if (myResponse?.isTopLinkCheck == true) {
                         binding.btnTopLinks.background = ContextCompat.getDrawable(this, R.drawable.custom_blue_button)
-                        Log.d("TAG", "getLinkList >> top_links >>: {${dataList.body()?.data?.top_links}}")
+                        Log.d("TAG", "getLinkList >> top_links >>: {${myResponse?.data?.top_links}}")
 
                     } else {
                         binding.btnRecentLinks.background = ContextCompat.getDrawable(this, R.drawable.custom_blue_button)
-                        Log.d("TAG", "getLinkList >> recent_links >>: {${dataList.body()?.data?.recent_links}}")
+                        Log.d("TAG", "getLinkList >> recent_links >>: {${myResponse?.data?.recent_links}}")
                     }
 
                     //  Button Click
                     binding.btnTopLinks.setOnClickListener {
-                        dataList.body()?.isTopLinkCheck = true
-                        dataList.body()?.isRecentLinkCheck = false
+                        myResponse?.isTopLinkCheck = true
+                        myResponse?.isRecentLinkCheck = false
 
                         binding.btnTopLinks.background = ContextCompat.getDrawable(this, R.drawable.custom_blue_button)
                         binding.btnTopLinks.setTextColor(ContextCompat.getColor(this, R.color.white)
@@ -95,14 +102,14 @@ class DashboardActivity : AppCompatActivity() {
                         binding.btnRecentLinks.setTextColor(ContextCompat.getColor(this, R.color.txt_gray_color)
                         )
 
-                        showLinksList(true, dataList.body())
+                        showLinksList(true, myResponse)
                     }
 
                     binding.btnRecentLinks.setOnClickListener {
 
                         // Set Button Checked Value
-                        dataList.body()?.isRecentLinkCheck = true
-                        dataList.body()?.isTopLinkCheck = false
+                        myResponse?.isRecentLinkCheck = true
+                        myResponse?.isTopLinkCheck = false
 
                         // isActive Button Design
                         binding.btnRecentLinks.background = ContextCompat.getDrawable(this, R.drawable.custom_blue_button)
@@ -114,7 +121,7 @@ class DashboardActivity : AppCompatActivity() {
                         binding.btnTopLinks.setTextColor(ContextCompat.getColor(this, R.color.txt_gray_color)
                         )
 
-                        showLinksList(false, dataList.body())
+                        showLinksList(false, myResponse)
 
                     }
 
@@ -141,7 +148,7 @@ class DashboardActivity : AppCompatActivity() {
             binding.rvLinks.layoutManager = LinearLayoutManager(this)
 
         } else {
-            binding.rvLinks.adapter = RecentLinkListAdapter(dataList?.data?.top_links as ArrayList<DashboardModel.Data.RecentLink>)
+            binding.rvLinks.adapter = RecentLinkListAdapter(dataList?.data?.recent_links as ArrayList<DashboardModel.Data.RecentLink>)
             binding.rvLinks.layoutManager = LinearLayoutManager(this)
 
         }
@@ -186,7 +193,6 @@ class DashboardActivity : AppCompatActivity() {
 
 
         val formatter = DateTimeFormatter.ISO_LOCAL_DATE
-
         val sumByMonth = mutableMapOf<Month, Int>()
         val countByMonth = mutableMapOf<Month, Int>()
 
@@ -216,9 +222,7 @@ class DashboardActivity : AppCompatActivity() {
         // Set Static Value into Line chart
         val entries = listOf(
 
-            Entry(1f, 20f).apply {
-
-            },
+            Entry(1f, 20f),
             Entry(2f, 25f),
             Entry(3f, 30f),
             Entry(4f, 18f),
