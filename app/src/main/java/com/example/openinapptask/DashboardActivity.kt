@@ -1,9 +1,11 @@
 package com.example.openinapptask
 
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
@@ -22,6 +24,9 @@ import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
+import java.time.LocalDate
+import java.time.Month
+import java.time.format.DateTimeFormatter
 import java.util.Calendar
 
 
@@ -39,14 +44,15 @@ class DashboardActivity : AppCompatActivity() {
         initialization()
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun initialization() {
 
         setGreeting()
         getLinkList()
-        setupLineChart()
 
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun getLinkList() {
         val repository = DashboardRepository()
         viewModel = ViewModelProvider(
@@ -60,6 +66,7 @@ class DashboardActivity : AppCompatActivity() {
                 if (dataList.body() != null) {
 
                     binding.clReload.visibility = View.GONE
+                    setupLineChart(dataList.body()?.data?.overall_url_chart)
                     showLinksList(true, dataList.body())
 
                     dataList.body()?.isTopLinkCheck = true
@@ -141,7 +148,8 @@ class DashboardActivity : AppCompatActivity() {
 
     }
 
-    private fun setupLineChart() {
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun setupLineChart(overallUrlChart: Map<String, Int>?) {
 
         binding.lineChart.description.isEnabled = false
         binding.lineChart.setTouchEnabled(false)
@@ -177,10 +185,40 @@ class DashboardActivity : AppCompatActivity() {
         yAxisLeft.gridLineWidth = 0.5f
 
 
+        val formatter = DateTimeFormatter.ISO_LOCAL_DATE
+
+        val sumByMonth = mutableMapOf<Month, Int>()
+        val countByMonth = mutableMapOf<Month, Int>()
+
+        if (overallUrlChart != null) {
+            for ((date, value) in overallUrlChart) {
+                val localDate = LocalDate.parse(date, formatter)
+                val month = localDate.month
+
+                sumByMonth[month] = sumByMonth.getOrDefault(month, 0) + value
+                countByMonth[month] = countByMonth.getOrDefault(month, 0) + 1
+            }
+        }
+
+        val averageByMonth = mutableMapOf<Month, Double>()
+        for ((month, sum) in sumByMonth) {
+            val average = sum.toDouble() / 100.0
+            averageByMonth[month] = average
+        }
+
+
+        for ((month, average) in averageByMonth) {
+            println("$month: $average")
+            Entry(1f, 20f).apply { "$month: $average" }
+
+            }
+
         // Set Static Value into Line chart
         val entries = listOf(
-            Entry(0f, 25f),
-            Entry(1f, 20f),
+
+            Entry(1f, 20f).apply {
+
+            },
             Entry(2f, 25f),
             Entry(3f, 30f),
             Entry(4f, 18f),
