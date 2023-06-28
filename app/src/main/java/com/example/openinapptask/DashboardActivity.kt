@@ -30,7 +30,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Calendar
 
 
-class DashboardActivity : AppCompatActivity() {
+class DashboardActivity : AppCompatActivity(), View.OnClickListener {
 
     lateinit var binding: ActivityDashboardBinding
 
@@ -39,7 +39,6 @@ class DashboardActivity : AppCompatActivity() {
     companion object {
         var myResponse: DashboardModel? = null
     }
-
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,17 +52,24 @@ class DashboardActivity : AppCompatActivity() {
     private fun initialization() {
 
         setGreeting()
-        getLinkList()
+        getApiData()
+
+        handleClick()
+
+       // getLinkList()
 
     }
 
+    private fun handleClick() {
+
+        binding.btnTopLinks.setOnClickListener(this)
+        binding.btnRecentLinks.setOnClickListener(this)
+    }
+
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun getLinkList() {
+    private fun getApiData() {
         val repository = DashboardRepository()
-        viewModel = ViewModelProvider(
-            this,
-            MainViewModelFactory(repository)
-        ).get(DashboardViewModel::class.java)
+        viewModel = ViewModelProvider(this, MainViewModelFactory(repository)).get(DashboardViewModel::class.java)
 
         viewModel.dataList.observe(this, Observer { dataList ->
 
@@ -71,14 +77,13 @@ class DashboardActivity : AppCompatActivity() {
                 if (dataList.body() != null) {
 
                     myResponse = dataList.body()
-
                     binding.clReload.visibility = View.GONE
-                    setupLineChart(myResponse?.data?.overall_url_chart)
-                    showLinksList(true, myResponse)
-
                     myResponse?.isTopLinkCheck = true
 
-                    //  Only for link button active or not
+                    setupLineChart()
+                    showLinksList(true)
+
+                    //  Check for link button active or not
                     if (myResponse?.isTopLinkCheck == true) {
                         binding.btnTopLinks.background = ContextCompat.getDrawable(this, R.drawable.custom_blue_button)
                         Log.d("TAG", "getLinkList >> top_links >>: {${myResponse?.data?.top_links}}")
@@ -86,43 +91,6 @@ class DashboardActivity : AppCompatActivity() {
                     } else {
                         binding.btnRecentLinks.background = ContextCompat.getDrawable(this, R.drawable.custom_blue_button)
                         Log.d("TAG", "getLinkList >> recent_links >>: {${myResponse?.data?.recent_links}}")
-                    }
-
-                    //  Button Click
-                    binding.btnTopLinks.setOnClickListener {
-                        myResponse?.isTopLinkCheck = true
-                        myResponse?.isRecentLinkCheck = false
-
-                        binding.btnTopLinks.background = ContextCompat.getDrawable(this, R.drawable.custom_blue_button)
-                        binding.btnTopLinks.setTextColor(ContextCompat.getColor(this, R.color.white)
-                        )
-
-                        // inActive Button Design
-                        binding.btnRecentLinks.background = ContextCompat.getDrawable(this, R.drawable.custom_transprint_button)
-                        binding.btnRecentLinks.setTextColor(ContextCompat.getColor(this, R.color.txt_gray_color)
-                        )
-
-                        showLinksList(true, myResponse)
-                    }
-
-                    binding.btnRecentLinks.setOnClickListener {
-
-                        // Set Button Checked Value
-                        myResponse?.isRecentLinkCheck = true
-                        myResponse?.isTopLinkCheck = false
-
-                        // isActive Button Design
-                        binding.btnRecentLinks.background = ContextCompat.getDrawable(this, R.drawable.custom_blue_button)
-                        binding.btnRecentLinks.setTextColor(ContextCompat.getColor(this, R.color.white)
-                        )
-
-                        // inActive Button Design
-                        binding.btnTopLinks.background = ContextCompat.getDrawable(this, R.drawable.custom_transprint_button)
-                        binding.btnTopLinks.setTextColor(ContextCompat.getColor(this, R.color.txt_gray_color)
-                        )
-
-                        showLinksList(false, myResponse)
-
                     }
 
                 } else {
@@ -138,17 +106,16 @@ class DashboardActivity : AppCompatActivity() {
 
         val AUTH_TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjU5MjcsImlhdCI6MTY3NDU1MDQ1MH0.dCkW0ox8tbjJA2GgUx2UEwNlbTZ7Rr38PVFJevYcXFI"
         viewModel.fetchData(AUTH_TOKEN)
-
     }
 
-    private fun showLinksList(topLinkList: Boolean, dataList: DashboardModel?) {
+    private fun showLinksList(topLinkList: Boolean) {
 
         if (topLinkList) {
-            binding.rvLinks.adapter = TopLinkListAdapter(dataList?.data?.top_links as ArrayList<DashboardModel.Data.TopLink>)
+            binding.rvLinks.adapter = TopLinkListAdapter(myResponse?.data?.top_links as ArrayList<DashboardModel.Data.TopLink>)
             binding.rvLinks.layoutManager = LinearLayoutManager(this)
 
         } else {
-            binding.rvLinks.adapter = RecentLinkListAdapter(dataList?.data?.recent_links as ArrayList<DashboardModel.Data.RecentLink>)
+            binding.rvLinks.adapter = RecentLinkListAdapter(myResponse?.data?.recent_links as ArrayList<DashboardModel.Data.RecentLink>)
             binding.rvLinks.layoutManager = LinearLayoutManager(this)
 
         }
@@ -156,7 +123,9 @@ class DashboardActivity : AppCompatActivity() {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun setupLineChart(overallUrlChart: Map<String, Int>?) {
+    private fun setupLineChart() {
+
+        val overallUrlChart = myResponse?.data?.overall_url_chart
 
         binding.lineChart.description.isEnabled = false
         binding.lineChart.setTouchEnabled(false)
@@ -215,13 +184,13 @@ class DashboardActivity : AppCompatActivity() {
 
         for ((month, average) in averageByMonth) {
             println("$month: $average")
-            Entry(1f, 20f).apply { "$month: $average" }
+           // Entry(1f, 20f).apply { "$month: $average" }
 
-            }
+        }
 
         // Set Static Value into Line chart
         val entries = listOf(
-
+            Entry(0f, 40f),
             Entry(1f, 20f),
             Entry(2f, 25f),
             Entry(3f, 30f),
@@ -246,12 +215,6 @@ class DashboardActivity : AppCompatActivity() {
         binding.lineChart.notifyDataSetChanged()
         binding.lineChart.invalidate()
 
-
-        val list = listOf(7, 9, 0, 2, 2, 1, 0, 2, 1)
-
-        val avg = list.average()
-        println(avg) // 3.0
-
     }
 
     private fun setGreeting() {
@@ -267,6 +230,45 @@ class DashboardActivity : AppCompatActivity() {
         binding.tvGreeting.text = greeting
 
 
+    }
+
+    override fun onClick(view: View?) {
+        when (view?.id)
+        {
+            R.id.btnTopLinks -> {
+                myResponse?.isTopLinkCheck = true
+                myResponse?.isRecentLinkCheck = false
+
+                binding.btnTopLinks.background = ContextCompat.getDrawable(this, R.drawable.custom_blue_button)
+                binding.btnTopLinks.setTextColor(ContextCompat.getColor(this, R.color.white)
+                )
+
+                // inActive Button Design
+                binding.btnRecentLinks.background = ContextCompat.getDrawable(this, R.drawable.custom_transprint_button)
+                binding.btnRecentLinks.setTextColor(ContextCompat.getColor(this, R.color.txt_gray_color)
+                )
+
+                showLinksList(true)
+            }
+
+            R.id.btnRecentLinks -> {
+                // Set Button Checked Value
+                myResponse?.isRecentLinkCheck = true
+                myResponse?.isTopLinkCheck = false
+
+                // isActive Button Design
+                binding.btnRecentLinks.background = ContextCompat.getDrawable(this, R.drawable.custom_blue_button)
+                binding.btnRecentLinks.setTextColor(ContextCompat.getColor(this, R.color.white)
+                )
+
+                // inActive Button Design
+                binding.btnTopLinks.background = ContextCompat.getDrawable(this, R.drawable.custom_transprint_button)
+                binding.btnTopLinks.setTextColor(ContextCompat.getColor(this, R.color.txt_gray_color)
+                )
+
+                showLinksList(false)
+            }
+        }
     }
 
 }
